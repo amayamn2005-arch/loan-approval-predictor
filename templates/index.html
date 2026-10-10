@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoanWise | Loan Approval Predictor</title>
+    <meta name="description"
+          content="Educational loan approval prediction using machine learning.">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="topbar">
+    <a class="brand" href="/">
+        <span class="brand-icon">L</span>
+        <span>LoanWise<small>LOAN INSIGHTS</small></span>
+    </a>
+    <span class="status"><span class="dot"></span> Prediction service</span>
+</header>
+
+<main class="container">
+    <section class="hero">
+        <div class="eyebrow">SMARTER APPLICATION INSIGHTS</div>
+        <h1>Loan Approval <span>Predictor</span></h1>
+        <p>
+            Enter the applicant's details to explore a machine-learning
+            prediction based on the training dataset.
+        </p>
+    </section>
+
+    {% if result %}
+    <section class="result-card {% if result.approved %}approved{% else %}rejected{% endif %}"
+             aria-live="polite">
+        <div class="result-heading">
+            <div>
+                <div class="eyebrow">PREDICTION RESULT</div>
+                <h2>
+                    {% if result.approved %}
+                        Likely Approved
+                    {% else %}
+                        Likely Rejected
+                    {% endif %}
+                </h2>
+            </div>
+            <span class="result-symbol">
+                {% if result.approved %}✓{% else %}—{% endif %}
+            </span>
+        </div>
+
+        <p>
+            {% if result.approved %}
+                The model classified this application in the approval category.
+            {% else %}
+                The model classified this application in the rejection category.
+            {% endif %}
+        </p>
+
+        <div class="result-grid">
+            <div class="result-stat">
+                <span>Model probability</span>
+                <strong>{{ result.confidence }}%</strong>
+            </div>
+            <div class="result-stat">
+                <span>Requested loan</span>
+                <strong>₹{{ "{:,.0f}".format(result.loan_amount * 1000) }}</strong>
+            </div>
+            <div class="result-stat">
+                <span>Applicant income</span>
+                <strong>₹{{ "{:,.0f}".format(result.income) }}</strong>
+            </div>
+        </div>
+
+        <p class="result-note">
+            The probability is the model's estimated probability for its
+            predicted class, not a guarantee of approval or a measure of
+            real-world reliability.
+        </p>
+    </section>
+    {% endif %}
+
+    {% if error %}
+    <div class="error-message" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <section class="content-grid">
+        <div class="form-card">
+            <div class="section-heading">
+                <div>
+                    <span class="step-label">APPLICATION DETAILS</span>
+                    <h2>Applicant information</h2>
+                    <p>Complete the fields below to generate a prediction.</p>
+                </div>
+                <span class="form-icon">01</span>
+            </div>
+
+            <form action="/predict" method="POST" id="loanForm">
+                <h3 class="group-title">Personal details</h3>
+
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="Gender">Gender</label>
+                        <select id="Gender" name="Gender" required>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="Married">Marital status</label>
+                        <select id="Married" name="Married" required>
+                            <option value="Yes">Married</option>
+                            <option value="No">Not married</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="Dependents">Dependents</label>
+                        <select id="Dependents" name="Dependents" required>
+                            <option value="0">0 dependents</option>
+                            <option value="1">1 dependent</option>
+                            <option value="2">2 dependents</option>
+                            <option value="3+">3 or more</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="Education">Education</label>
+                        <select id="Education" name="Education" required>
+                            <option value="Graduate">Graduate</option>
+                            <option value="Not Graduate">Not graduate</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="Self_Employed">Self-employed</label>
+                        <select id="Self_Employed" name="Self_Employed" required>
+                            <option value="No">No</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="Property_Area">Property area</label>
+                        <select id="Property_Area" name="Property_Area" required>
+                            <option value="Urban">Urban</option>
+                            <option value="Semiurban">Semi-urban</option>
+                            <option value="Rural">Rural</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="section-divider"></div>
+                <h3 class="group-title">Financial details</h3>
+
+                <p class="helper">
+                    Enter income in rupees per month. The sample dataset's
+                    loan amount is stored in thousands of rupees.
+                </p>
+
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="ApplicantIncome">Applicant income (₹/month)</label>
+                        <input type="number" id="ApplicantIncome"
+                               name="ApplicantIncome" min="1" step="any"
+                               value="45000" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="CoapplicantIncome">Co-applicant income (₹/month)</label>
+                        <input type="number" id="CoapplicantIncome"
+                               name="CoapplicantIncome" min="0" step="any"
+                               value="15000" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="LoanAmount">Loan amount (₹ thousands)</label>
+                        <input type="number" id="LoanAmount"
+                               name="LoanAmount" min="1" step="any"
+                               value="100" required>
+                        <small>For example, 100 means ₹1,00,000.</small>
+                    </div>
+
+                    <div class="field">
+                        <label for="Loan_Amount_Term">Loan term (months)</label>
+                        <select id="Loan_Amount_Term"
+                                name="Loan_Amount_Term" required>
+                            <option value="360">360 months (30 years)</option>
+                            <option value="240">240 months (20 years)</option>
+                            <option value="180">180 months (15 years)</option>
+                            <option value="120">120 months (10 years)</option>
+                        </select>
+                    </div>
+
+                    <div class="field full-width">
+                        <label for="Credit_History">Credit history</label>
+                        <select id="Credit_History" name="Credit_History" required>
+                            <option value="1">Positive credit history (1)</option>
+                            <option value="0">No positive credit history (0)</option>
+                        </select>
+                        <small>
+                            These are simplified dataset codes, not a credit score.
+                        </small>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="primary-button">
+                        Generate prediction <span>→</span>
+                    </button>
+                    <button type="reset" class="secondary-button">
+                        Reset form
+                    </button>
+                </div>
+
+                <p class="privacy-note">
+                    Demo only. Do not enter real customer financial information.
+                </p>
+            </form>
+        </div>
+
+        <aside class="side-panel">
+            <div class="side-card">
+                <span class="side-number">01</span>
+                <h3>How it works</h3>
+                <p>
+                    Logistic Regression learns associations between
+                    applicant details and historical labels in the CSV.
+                </p>
+            </div>
+
+            <div class="side-card">
+                <span class="side-number">02</span>
+                <h3>What is considered?</h3>
+                <ul>
+                    <li>Applicant and co-applicant income</li>
+                    <li>Loan amount and repayment term</li>
+                    <li>Credit history indicator</li>
+                    <li>Other fields in the training data</li>
+                </ul>
+            </div>
+
+            <div class="notice-card">
+                <strong>Important limitation</strong>
+                <p>
+                    This demonstration uses synthetic data and does not
+                    represent a bank's approval criteria. Predictions may
+                    be inaccurate and must not be used for actual lending
+                    decisions.
+                </p>
+            </div>
+        </aside>
+    </section>
+
+    <footer>
+        <span>LoanWise · Educational machine learning project</span>
+        <span>Not a financial service</span>
+    </footer>
+</main>
+
+<script>
+    const form = document.getElementById("loanForm");
+
+    form.addEventListener("reset", function () {
+        // Reset returns every field to its original HTML default.
+    });
+</script>
+
+</body>
+</html>
